@@ -5,3 +5,7 @@ STEPS FOR INSTALLATION :
   https://pintosiiith.wordpress.com/2012/09/13/install-pintos-with-qemu/
  
 READ SOURCE
+  read the source code files to get idea of how it is flowing.
+  
+REFERENCE:
+  http://courses.cs.vt.edu/cs5204/fall15-gback/pintos/doc/pintos.pdf
