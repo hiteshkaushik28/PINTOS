@@ -1,0 +1,7 @@
+CLONE REPO:
+  https://github.com/hiteshkaushik28/PINTOS.git
+  
+STEPS FOR INSTALLATION :
+  https://pintosiiith.wordpress.com/2012/09/13/install-pintos-with-qemu/
+ 
+READ SOURCE
