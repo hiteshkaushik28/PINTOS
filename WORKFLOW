@@ -9,3 +9,27 @@ READ SOURCE
   
 REFERENCE:
   http://courses.cs.vt.edu/cs5204/fall15-gback/pintos/doc/pintos.pdf
+  
+PART 1:
+STEPS:
+ - You can figure out that when pintos is initially launched, a series of threads are fired and they ultimately terminate.
+ - These threads are launched because we executed a test named "alarm-multiple". (these tests are present in ~/src/tests/threads).
+ - So, we will also create a test for our "hello" task.
+ - Create a file <anyname.c> in ~/src/tests/threads
+ - This file will just have your function(say void printutil()) which will print "Pintos Hello" (a simple function having printf).
+ - Not to forget that you have to include one more header: #include "tests.h" in your c file created in last step.
+ - Now open the "tests.h" file in present in same directory.
+ - This file has all the tests that are created for testing threading module of pintos. Here we have to include our newly created test too.
+ - Insert "extern test_func <your func name>;" with other lines.
+ - Next, open the tests.c file present in same directory. Here make entry for your tests (in same format as other entries). The format is
+   " { "filename", func_name}, ".
+ - Now open the Make.tests present in same directory.
+ - Now under the heading "# source for tests " , create a entry for your file too.Be careful about the += operator there.It is not required for the first entry.
+ - All that being done, now you are good to build your source.
+ - Go to ~/src/utils and do make clean and then make.
+ - Go to ~/src/threads and do make clean and make.
+ - Now go to ~/src and type pintos run file_name , hit ENTER. (file_name must not be followed by any other extension etc ).
+ - If all steps followed properly, the simulator will launch and show your output.
+ 
+ 
+ 
