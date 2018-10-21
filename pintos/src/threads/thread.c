@@ -14,6 +14,8 @@
 #ifdef USERPROG
 #include "userprog/process.h"
 #endif
+#include "devices/timer.h"
+
 
 /* Random value for struct thread's `magic' member.
    Used to detect stack overflow.  See the big comment at the top
@@ -366,6 +368,14 @@ thread_get_nice (void)
 {
   /* Not yet implemented. */
   return 0;
+}
+
+/* Return thread with early wake up time */
+bool thread_early_wake(const struct list_elem *tmp,const struct list_elem *tmp1,void *aux UNUSED)
+{
+  struct thread *thread1 = list_entry (tmp, struct thread, elem);
+  struct thread *thread2 = list_entry (tmp1, struct thread, elem);
+  return thread1->wakeup_quantum < thread2->wakeup_quantum;
 }
 
 /* Returns 100 times the system load average. */

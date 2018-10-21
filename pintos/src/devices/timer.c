@@ -3,13 +3,16 @@
 #include <inttypes.h>
 #include <round.h>
 #include <stdio.h>
+#include <kernel/list.h>
 #include "devices/pit.h"
 #include "threads/interrupt.h"
 #include "threads/synch.h"
 #include "threads/thread.h"
+
+/* List of threads waiting for resp. wakeup_quantum to complete */
+static struct list sleep_list;
   
 /* See [8254] for hardware details of the 8254 timer chip. */
-
 #if TIMER_FREQ < 19
 #error 8254 timer requires TIMER_FREQ >= 19
 #endif
@@ -37,6 +40,9 @@ timer_init (void)
 {
   pit_configure_channel (0, 2, TIMER_FREQ);
   intr_register_ext (0x20, timer_interrupt, "8254 Timer");
+  /* ------custom code------- */
+  list_init(&sleep_list);
+  /* ------------------------ */
 }
 
 /* Calibrates loops_per_tick, used to implement brief delays. */
@@ -89,11 +95,28 @@ timer_elapsed (int64_t then)
 void
 timer_sleep (int64_t ticks) 
 {
-  int64_t start = timer_ticks ();
+  // int64_t start = timer_ticks ();
 
+/* ---------------custom code to remove busy wait------------------- */
+
+  enum intr_level prsnt_level;
+  struct thread* prsnt_thread;
   ASSERT (intr_get_level () == INTR_ON);
-  while (timer_elapsed (start) < ticks) 
-    thread_yield ();
+
+  prsnt_level = intr_disable();
+  prsnt_thread = thread_current();
+  prsnt_thread->wakeup_quantum = timer_ticks() + ticks;
+  list_insert_ordered (&sleep_list, &prsnt_thread->elem,thread_early_wake, NULL);
+  thread_block();
+  intr_set_level(prsnt_level);
+
+/* ----------------------------------------------------------------- */
+
+ 
+/* ----------- Original busy wait code ---------- */
+  /*while (timer_elapsed (start) < ticks) 
+    thread_yield ();*/
+/* ----------- Ends here ------------------------*/
 }
 
 /* Sleeps for approximately MS milliseconds.  Interrupts must be
@@ -170,8 +193,34 @@ timer_print_stats (void)
 static void
 timer_interrupt (struct intr_frame *args UNUSED)
 {
+  /* ----------------Custom elements--------- */
+  struct thread *sleep_thread;
+  struct list_elem *elm;
+  int suspend = 0;
+  /* ---------------------------------------- */
   ticks++;
   thread_tick ();
+
+  /* ===========custom code to wake up sleeping threads=========== */
+  while(!list_empty(&sleep_list))
+  {
+    elm = list_front(&sleep_list);
+    sleep_thread = list_entry(elm,struct thread,elem);
+    if(sleep_thread->wakeup_quantum <= ticks)
+    {
+      list_remove(elm);
+      thread_unblock(sleep_thread);
+      suspend = 1;
+    }
+
+    else
+      break;
+  }
+
+  if(suspend)
+    intr_yield_on_return;
+
+  /* ============================================================= */
 }
 
 /* Returns true if LOOPS iterations waits for more than one timer
@@ -209,7 +258,8 @@ busy_wait (int64_t loops)
 
 /* Sleep for approximately NUM/DENOM seconds. */
 static void
-real_time_sleep (int64_t num, int32_t denom) 
+real_time_sleep
+ (int64_t num, int32_t denom) 
 {
   /* Convert NUM/DENOM seconds into timer ticks, rounding down.
           

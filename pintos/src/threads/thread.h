@@ -82,6 +82,13 @@ typedef int tid_t;
    blocked state is on a semaphore wait list. */
 struct thread
   {
+    /* --------------------custom members-------------------------------- */
+
+    int64_t wakeup_quantum;              /* Time after which a thread will wake up */
+    //struct list_elem sleep_alrm_elem;
+    
+   /* ---------------------custom members end here -----------------------*/
+
     /* Owned by thread.c. */
     tid_t tid;                          /* Thread identifier. */
     enum thread_status status;          /* Thread state. */
@@ -137,5 +144,5 @@ int thread_get_nice (void);
 void thread_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
-
+bool thread_early_wake(const struct list_elem*,const struct list_elem*,void *aux);
 #endif /* threads/thread.h */
