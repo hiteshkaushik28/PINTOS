@@ -42,14 +42,12 @@ test_priority_fifo (void)
   /* Make sure our priority is the default. */
   ASSERT (thread_get_priority () == PRI_DEFAULT);
 
-  msg ("%d threads will iterate %d times in the same order each time.",
-       THREAD_CNT, ITER_CNT);
+  msg ("%d threads will iterate %d times in the same order each time.",THREAD_CNT, ITER_CNT);
   msg ("If the order varies then there is a bug.");
 
   output = op = malloc (sizeof *output * THREAD_CNT * ITER_CNT * 2);
   ASSERT (output != NULL);
   lock_init (&lock);
-
   thread_set_priority (PRI_DEFAULT + 2);
   for (i = 0; i < THREAD_CNT; i++) 
     {

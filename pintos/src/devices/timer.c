@@ -196,7 +196,6 @@ timer_interrupt (struct intr_frame *args UNUSED)
   /* ----------------Custom elements--------- */
   struct thread *sleep_thread;
   struct list_elem *elm;
-  int suspend = 0;
   /* ---------------------------------------- */
   ticks++;
   thread_tick ();
@@ -210,15 +209,12 @@ timer_interrupt (struct intr_frame *args UNUSED)
     {
       list_remove(elm);
       thread_unblock(sleep_thread);
-      suspend = 1;
+      intr_yield_on_return;
     }
 
     else
       break;
   }
-
-  if(suspend)
-    intr_yield_on_return;
 
   /* ============================================================= */
 }

@@ -82,19 +82,21 @@ typedef int tid_t;
    blocked state is on a semaphore wait list. */
 struct thread
   {
-    /* --------------------custom members-------------------------------- */
-
+    /* ===============custom members======================*/
     int64_t wakeup_quantum;              /* Time after which a thread will wake up */
-    //struct list_elem sleep_alrm_elem;
+    int prev_priority;                  /* Maintain original priority for undoing donation */
+    struct semaphore *sem_wait;
+    struct lock *lock_wait;
+    struct thread * priority_recv;
     
-   /* ---------------------custom members end here -----------------------*/
+   /* ============ custom members end here =============== */
 
     /* Owned by thread.c. */
     tid_t tid;                          /* Thread identifier. */
     enum thread_status status;          /* Thread state. */
     char name[16];                      /* Name (for debugging purposes). */
     uint8_t *stack;                     /* Saved stack pointer. */
-    int priority;                       /* Priority. */
+    int priority;  
     struct list_elem allelem;           /* List element for all threads list. */
 
     /* Shared between thread.c and synch.c. */
@@ -144,5 +146,11 @@ int thread_get_nice (void);
 void thread_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
+
+/* ================= custom functions =================== */
+void give_priority(struct thread *giver, struct thread *taker);
+void undo_donate(struct thread *taker);
 bool thread_early_wake(const struct list_elem*,const struct list_elem*,void *aux);
+bool thread_priority(const struct list_elem*,const struct list_elem*,void *aux);
+/* ===================================================== */
 #endif /* threads/thread.h */
