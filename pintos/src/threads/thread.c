@@ -180,7 +180,6 @@ thread_create (const char *name, int priority,
   struct switch_entry_frame *ef;
   struct switch_threads_frame *sf;
   tid_t tid;
-  enum intr_level old_level;
 
   ASSERT (function != NULL);
 
@@ -196,7 +195,6 @@ thread_create (const char *name, int priority,
   /* Prepare thread for first run by initializing its stack.
      Do this atomically so intermediate values for the 'stack' 
      member cannot be observed. */
-  old_level = intr_disable ();
 
   /* Stack frame for kernel_thread(). */
   kf = alloc_frame (t, sizeof *kf);
@@ -213,13 +211,11 @@ thread_create (const char *name, int priority,
   sf->eip = switch_entry;
   sf->ebp = 0;
 
-  intr_set_level (old_level);
-
   /* Add to run queue. */
   thread_unblock (t);
 
   /* =============== */
-  if(priority > thread_current()->priority)
+  if(t->priority > thread_current()->priority)
   {
     thread_yield();
   }
@@ -423,7 +419,10 @@ thread_set_priority (int new_priority)
 int
 thread_get_priority (void) 
 {
-  return thread_current ()->priority;
+  enum intr_level old_value = intr_disable();
+  int64_t value = thread_current ()->priority;
+  intr_set_level(old_value);
+  return value;
 }
 
 /* Sets the current thread's nice value to NICE. */
@@ -549,6 +548,7 @@ init_thread (struct thread *t, const char *name, int priority)
   strlcpy (t->name, name, sizeof t->name);
   t->stack = (uint8_t *) t + PGSIZE;
   t->priority = priority;
+  t->prev_priority = -1;
   t->magic = THREAD_MAGIC;
   list_push_back (&all_list, &t->allelem);
 }
